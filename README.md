@@ -77,6 +77,13 @@ Expect rapid iteration over weekends and public development logs.
 
 Right now this is a solo project for portfolio purposes, but if you're a designer, writer, or dev who's curious about the idea — feel free to open an issue or say hi.
 
+If you want to contribute code, please fork the repo and submit a PR. I’m open to feedback and suggestions!
+To ensure compatibility:
+
+- Use Node version specified in `.nvmrc`
+- Run `nvm use` after cloning
+- Tailwind is pinned to v3.4.1 to avoid future CLI compatibility issues
+
 ---
 
 ## 🧑‍💻 Created By
