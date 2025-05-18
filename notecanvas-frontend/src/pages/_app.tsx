@@ -1,4 +1,6 @@
 import "@/styles/globals.css";
+import '../amplify-config';
+
 
 import type { AppProps } from "next/app";
 
