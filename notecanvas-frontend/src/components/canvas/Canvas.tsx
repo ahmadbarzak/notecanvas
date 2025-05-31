@@ -3,11 +3,11 @@ import {
   DragOverlay,
   DragStartEvent,
   DragEndEvent,
-  useDraggable,
 } from "@dnd-kit/core";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Block, TextBlock } from "@/types/block";
+import DraggableTextBlock from "./DraggableTextBlock";
 
 export default function Canvas() {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -15,8 +15,27 @@ export default function Canvas() {
 
   const activeBlock = blocks.find((b) => b.id === activeId) || null;
 
+  function updateBlockContent(id: string, content: string) {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === id && b.type === "text"
+          ? { ...b, content }
+          : b
+      )
+    );
+  }
+
   function handleDragStart(event: DragStartEvent) {
+    const id = event.active.id as string;
     setActiveId(event.active.id as string);
+
+    setBlocks((prev) => {
+      const draggedBlock = prev.find((b) => b.id === id);
+      if (!draggedBlock) return prev;
+
+      const withoutDragged = prev.filter((b) => b.id !== id);
+      return [...withoutDragged, draggedBlock]; // put on top
+  });
   }
 
   function addTextBlock() {
@@ -54,7 +73,7 @@ export default function Canvas() {
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {blocks.map((block) =>
           block.type === "text" ? (
-            <DraggableTextBlock key={block.id} block={block} isHidden={block.id === activeId} />
+            <DraggableTextBlock key={block.id} block={block} isHidden={block.id === activeId} updateBlockContent={updateBlockContent}/>
           ) : null
         )}
 
@@ -65,53 +84,12 @@ export default function Canvas() {
               block={activeBlock}
               isOverlay
               overlayPosition={{ x: activeBlock.x, y: activeBlock.y }}
+              updateBlockContent={updateBlockContent}
             />
           )}
         </DragOverlay>
         )}
       </DndContext>
-    </div>
-  );
-}
-
-function DraggableTextBlock({
-  block,
-  isOverlay = false,
-  isHidden = false,
-  overlayPosition,
-}: {
-  block: TextBlock;
-  isOverlay?: boolean;
-  isHidden?: boolean;
-  overlayPosition?: { x: number; y: number };
-}) {
-  const { attributes, listeners, setNodeRef } = useDraggable({
-    id: block.id,
-  });
-
-  const style: React.CSSProperties = {
-    transform: isOverlay
-      ? `translate3d(${overlayPosition?.x || 0}px, ${overlayPosition?.y || 0}px, 0)`
-      : `translate3d(${block.x}px, ${block.y}px, 0)`,
-    position: isOverlay ? "fixed" : "absolute",
-    zIndex: 10,
-    opacity: isHidden ? 0 : 1,
-    pointerEvents: isOverlay ? "none" : "auto",
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      {...(!isOverlay ? listeners : {})}
-      {...attributes}
-      style={style}
-      className="p-2 bg-gray-100 border rounded shadow"
-    >
-      <textarea
-        className="w-64 h-24 resize-none bg-blue-500 border p-2"
-        defaultValue={block.content}
-        readOnly={isOverlay}
-      />
     </div>
   );
 }
