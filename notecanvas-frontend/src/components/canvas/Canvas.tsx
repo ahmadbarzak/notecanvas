@@ -3,6 +3,9 @@ import {
   DragOverlay,
   DragStartEvent,
   DragEndEvent,
+  useSensors,
+  useSensor,
+  PointerSensor
 } from "@dnd-kit/core";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -12,8 +15,19 @@ import DraggableTextBlock from "./DraggableTextBlock";
 export default function Canvas() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
+
 
   const activeBlock = blocks.find((b) => b.id === activeId) || null;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 10,
+      },
+    })
+  );
 
   function updateBlockContent(id: string, content: string) {
     setBlocks((prev) =>
@@ -62,7 +76,9 @@ export default function Canvas() {
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] bg-white overflow-hidden">
+    <div 
+      onClick={() => setFocusedBlockId(null)}
+      className="relative w-full h-[calc(100vh-64px)] bg-white overflow-hidden">
       <button
         onClick={addTextBlock}
         className="absolute top-4 left-4 bg-black text-white px-4 py-2 rounded z-10"
@@ -70,10 +86,26 @@ export default function Canvas() {
         Add Text
       </button>
 
-      <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext  
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
         {blocks.map((block) =>
           block.type === "text" ? (
-            <DraggableTextBlock key={block.id} block={block} isHidden={block.id === activeId} updateBlockContent={updateBlockContent}/>
+            <DraggableTextBlock 
+              key={block.id}
+              block={block}
+              isHidden={block.id === activeId}
+              isFocused={focusedBlockId === block.id}
+              onDoubleClick={() => {
+                setFocusedBlockId(block.id);
+              }}
+              onBlur={() => {
+                if (focusedBlockId === block.id) setFocusedBlockId(null);
+              }}
+              updateBlockContent={updateBlockContent}
+            />
           ) : null
         )}
 
