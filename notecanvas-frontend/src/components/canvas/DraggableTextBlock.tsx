@@ -10,7 +10,6 @@ export default function DraggableTextBlock({
   isHidden = false,
   isFocused = false,
   onDoubleClick,
-  onBlur,
   overlayPosition,
   updateBlockContent
 }: {
@@ -19,13 +18,11 @@ export default function DraggableTextBlock({
   isHidden?: boolean;
   isFocused?: boolean;
   onDoubleClick?: () => void;
-  onBlur?: () => void;
   overlayPosition?: { x: number; y: number };
   updateBlockContent: (id: string, content: string) => void;
 }) {
-//   const { attributes, setNodeRef } = useDraggable({
-//     id: block.id,
-//   });
+
+
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: block.id,
   });
@@ -51,19 +48,16 @@ export default function DraggableTextBlock({
 
   return (
     <div
-      onMouseDownCapture={(e) => {
-        if (isFocused) e.stopPropagation();
-      }}
-      onClickCapture={(e) => {
-        if (isFocused) e.stopPropagation();
-      }}
+      onMouseDown={(e) => { if (isFocused) e.stopPropagation(); }}
       ref={setNodeRef}
       {...(isFocused || isOverlay ? {} : listeners)}
       {...attributes}
       style={style}
       onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick?.();
+        if (!isFocused) {
+            e.stopPropagation();
+            onDoubleClick?.();
+        }
       }}
       className={`p-2 border rounded shadow ${
         isFocused ? 'ring-2 ring-red-500' : 'bg-gray-100'
@@ -72,16 +66,14 @@ export default function DraggableTextBlock({
       <textarea
         ref={textareaRef}
         className="w-64 h-24 resize-none bg-blue-500 border p-2"
-        // defaultValue={block.content}
         value={block.content}
-        onBlur={onBlur}
         onChange={(e) => {
             if (!isOverlay) {
                 const newContent = e.target.value;
                 updateBlockContent(block.id, newContent);
             }
         }}
-        readOnly={!isFocused || isOverlay} // 👈 disable typing unless focused
+        readOnly={!isFocused || isOverlay}
       />
     </div>
   );

@@ -77,7 +77,10 @@ export default function Canvas() {
 
   return (
     <div 
-      onClick={() => setFocusedBlockId(null)}
+      onMouseDown={() => {
+        console.log("mouseDownCanvas");
+        setFocusedBlockId(null)}
+      }
       className="relative w-full h-[calc(100vh-64px)] bg-white overflow-hidden">
       <button
         onClick={addTextBlock}
@@ -100,9 +103,6 @@ export default function Canvas() {
               isFocused={focusedBlockId === block.id}
               onDoubleClick={() => {
                 setFocusedBlockId(block.id);
-              }}
-              onBlur={() => {
-                if (focusedBlockId === block.id) setFocusedBlockId(null);
               }}
               updateBlockContent={updateBlockContent}
             />
