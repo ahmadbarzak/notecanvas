@@ -1,23 +1,40 @@
 
 import {useDraggable} from "@dnd-kit/core";
 import {TextBlock } from "@/types/block";
+import { useEffect, useRef } from "react";
+
 
 export default function DraggableTextBlock({
   block,
   isOverlay = false,
   isHidden = false,
+  isFocused = false,
+  onDoubleClick,
   overlayPosition,
   updateBlockContent
 }: {
   block: TextBlock;
   isOverlay?: boolean;
   isHidden?: boolean;
+  isFocused?: boolean;
+  onDoubleClick?: () => void;
   overlayPosition?: { x: number; y: number };
   updateBlockContent: (id: string, content: string) => void;
 }) {
+
+
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: block.id,
   });
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isFocused && textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.select();
+    }
+  }, [isFocused]);
 
   const style: React.CSSProperties = {
     transform: isOverlay
@@ -31,22 +48,32 @@ export default function DraggableTextBlock({
 
   return (
     <div
+      onMouseDown={(e) => { if (isFocused) e.stopPropagation(); }}
       ref={setNodeRef}
-      {...(!isOverlay ? listeners : {})}
+      {...(isFocused || isOverlay ? {} : listeners)}
       {...attributes}
       style={style}
-      className="p-2 bg-gray-100 border rounded shadow"
+      onDoubleClick={(e) => {
+        if (!isFocused) {
+            e.stopPropagation();
+            onDoubleClick?.();
+        }
+      }}
+      className={`p-2 border rounded shadow ${
+        isFocused ? 'ring-2 ring-red-500' : 'bg-gray-100'
+      }`}
     >
       <textarea
+        ref={textareaRef}
         className="w-64 h-24 resize-none bg-blue-500 border p-2"
-        defaultValue={block.content}
+        value={block.content}
         onChange={(e) => {
             if (!isOverlay) {
                 const newContent = e.target.value;
                 updateBlockContent(block.id, newContent);
             }
         }}
-        readOnly={isOverlay}
+        readOnly={!isFocused || isOverlay}
       />
     </div>
   );
