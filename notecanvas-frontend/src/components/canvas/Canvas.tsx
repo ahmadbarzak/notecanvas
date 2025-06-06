@@ -101,7 +101,8 @@ export default function Canvas() {
       onMouseDown={() => {
         setFocusedBlockId(null)}
       }
-      className="relative w-full h-[calc(100vh-64px)] bg-white overflow-hidden">
+      style={{ backgroundColor: "white" }}
+      className="relative w-full h-[calc(100vh-64px)] overflow-hidden">
       <button
         onClick={addTextBlock}
         className="absolute top-4 left-4 bg-black text-white px-4 py-2 rounded z-10"
