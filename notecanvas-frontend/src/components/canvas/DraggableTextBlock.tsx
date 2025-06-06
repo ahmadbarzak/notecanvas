@@ -3,6 +3,8 @@ import {useDraggable} from "@dnd-kit/core";
 import {TextBlock } from "@/types/block";
 import { useEffect, useRef } from "react";
 import { BlockRenderProps } from "@/types/blockRenderProps";
+import ResizableHandles, { ResizeDirection } from "./ResizableHandles";
+
 
 
 export default function DraggableTextBlock({
@@ -39,6 +41,15 @@ export default function DraggableTextBlock({
     pointerEvents: isOverlay ? "none" : "auto",
   };
 
+
+  function handleResizeStart(e: React.MouseEvent, direction: ResizeDirection) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log("Start resize in direction:", direction);
+
+  }
+
+
   return (
     <div
       onMouseDown={(e) => { if (isFocused) e.stopPropagation(); }}
@@ -68,6 +79,7 @@ export default function DraggableTextBlock({
         }}
         readOnly={!isFocused || isOverlay}
       />
+      {isFocused && <ResizableHandles onResizeStart={handleResizeStart} />}
     </div>
   );
 }

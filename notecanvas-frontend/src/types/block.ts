@@ -5,6 +5,8 @@ export interface BaseBlock {
   type: BlockType;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
 }
 
 export interface TextBlock extends BaseBlock {
