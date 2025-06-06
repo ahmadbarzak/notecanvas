@@ -10,7 +10,10 @@ import {
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Block, TextBlock } from "@/types/block";
-import DraggableTextBlock from "./DraggableTextBlock";
+// import DraggableTextBlock from "./DraggableTextBlock";
+import { BlockRenderProps } from "@/types/blockRenderProps";
+import { blockRendererMap } from "@/blockRegistry";
+import { JSX } from "react";
 
 export default function Canvas() {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -19,6 +22,13 @@ export default function Canvas() {
 
 
   const activeBlock = blocks.find((b) => b.id === activeId) || null;
+
+  function getRenderer<T extends Block>(block: T) {
+    return blockRendererMap[block.type] as
+      | ((props: BlockRenderProps<T>) => JSX.Element)
+      | undefined;
+  }
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -94,31 +104,42 @@ export default function Canvas() {
         onDragEnd={handleDragEnd}
         sensors={sensors}
       >
-        {blocks.map((block) =>
-          block.type === "text" ? (
-            <DraggableTextBlock 
+        {blocks.map((block) => {
+
+          const Renderer = getRenderer(block);
+
+          return Renderer ? (
+            <Renderer
               key={block.id}
               block={block}
               isHidden={block.id === activeId}
               isFocused={focusedBlockId === block.id}
-              onDoubleClick={() => {
-                setFocusedBlockId(block.id);
-              }}
+              onDoubleClick={() => setFocusedBlockId(block.id)}
               updateBlockContent={updateBlockContent}
             />
-          ) : null
-        )}
+          ) : null;
+        })}
 
         {activeId && (
         <DragOverlay>
-          {activeBlock?.type === "text" && (
-            <DraggableTextBlock
-              block={activeBlock}
-              isOverlay
-              overlayPosition={{ x: activeBlock.x, y: activeBlock.y }}
-              updateBlockContent={updateBlockContent}
-            />
-          )}
+          {
+            (
+              () => {
+                if (!activeBlock) return null;
+
+                const Renderer = getRenderer(activeBlock);
+
+                return Renderer ? (
+                  <Renderer
+                    block={activeBlock}
+                    isOverlay
+                    overlayPosition={{ x: activeBlock.x, y: activeBlock.y }}
+                    updateBlockContent={updateBlockContent}
+                  />
+                ) : null;
+              }
+            )()
+          }
         </DragOverlay>
         )}
       </DndContext>
