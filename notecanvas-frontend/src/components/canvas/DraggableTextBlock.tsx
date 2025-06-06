@@ -2,6 +2,7 @@
 import {useDraggable} from "@dnd-kit/core";
 import {TextBlock } from "@/types/block";
 import { useEffect, useRef } from "react";
+import { BlockRenderProps } from "@/types/blockRenderProps";
 
 
 export default function DraggableTextBlock({
@@ -9,19 +10,11 @@ export default function DraggableTextBlock({
   isOverlay = false,
   isHidden = false,
   isFocused = false,
-  onDoubleClick,
   overlayPosition,
+  onDoubleClick,
   updateBlockContent
-}: {
-  block: TextBlock;
-  isOverlay?: boolean;
-  isHidden?: boolean;
-  isFocused?: boolean;
-  onDoubleClick?: () => void;
-  overlayPosition?: { x: number; y: number };
-  updateBlockContent: (id: string, content: string) => void;
-}) {
-
+}: BlockRenderProps<TextBlock> ) 
+{
 
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: block.id,

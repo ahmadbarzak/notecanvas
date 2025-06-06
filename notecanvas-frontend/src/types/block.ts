@@ -23,3 +23,4 @@ export interface ImageBlock extends BaseBlock {
 }
 
 export type Block = TextBlock | AudioBlock | ImageBlock;
+
