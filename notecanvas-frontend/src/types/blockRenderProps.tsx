@@ -8,4 +8,5 @@ export interface BlockRenderProps<T extends Block = Block> {
   overlayPosition?: { x: number; y: number };
   onDoubleClick?: () => void;
   updateBlockContent: (id: string, content: string) => void;
+  resizeBlock?: (id: string, updates: { x: number; y: number; width: number; height: number }) => void;
 }
