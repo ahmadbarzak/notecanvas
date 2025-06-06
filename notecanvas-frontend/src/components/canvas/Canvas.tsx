@@ -20,7 +20,6 @@ export default function Canvas() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
 
-
   const activeBlock = blocks.find((b) => b.id === activeId) || null;
 
   function getRenderer<T extends Block>(block: T) {
@@ -49,12 +48,22 @@ export default function Canvas() {
     );
   }
 
+  function resizeBlock(id: string, updates: { x: number; y: number; width: number; height: number }) {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === id ? { ...b, ...updates } : b
+      )
+    );
+  }
+
   function handleDragStart(event: DragStartEvent) {
     const id = event.active.id as string;
     setActiveId(event.active.id as string);
 
+
     setBlocks((prev) => {
       const draggedBlock = prev.find((b) => b.id === id);
+
       if (!draggedBlock) return prev;
 
       const withoutDragged = prev.filter((b) => b.id !== id);
@@ -69,6 +78,8 @@ export default function Canvas() {
       x: 100,
       y: 100,
       content: "New text",
+      width: 274,
+      height: 141,
     };
     setBlocks((prev) => [...prev, newBlock]);
   }
@@ -88,10 +99,10 @@ export default function Canvas() {
   return (
     <div 
       onMouseDown={() => {
-        console.log("mouseDownCanvas");
         setFocusedBlockId(null)}
       }
-      className="relative w-full h-[calc(100vh-64px)] bg-white overflow-hidden">
+      style={{ backgroundColor: "white" }}
+      className="relative w-full h-[calc(100vh-64px)] overflow-hidden">
       <button
         onClick={addTextBlock}
         className="absolute top-4 left-4 bg-black text-white px-4 py-2 rounded z-10"
@@ -116,6 +127,7 @@ export default function Canvas() {
               isFocused={focusedBlockId === block.id}
               onDoubleClick={() => setFocusedBlockId(block.id)}
               updateBlockContent={updateBlockContent}
+              resizeBlock={resizeBlock}
             />
           ) : null;
         })}
