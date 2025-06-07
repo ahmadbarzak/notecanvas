@@ -4,7 +4,7 @@ import {TextBlock } from "@/types/block";
 import { useEffect, useState, useRef } from "react";
 import { BlockRenderProps } from "@/types/blockRenderProps";
 import ResizableHandles, { ResizeDirection } from "./ResizableHandles";
-
+import { ResizeState } from "@/resizeManager";
 
 
 export default function DraggableTextBlock({
@@ -12,8 +12,10 @@ export default function DraggableTextBlock({
   isOverlay = false,
   isHidden = false,
   isFocused = false,
+  isResizable = false,
   overlayPosition,
   onDoubleClick,
+  onClick,
   updateBlockContent,
   resizeBlock
 }: BlockRenderProps<TextBlock> ) 
@@ -50,6 +52,8 @@ export default function DraggableTextBlock({
   }, [block.x, block.y]);
 
   function handleResizeStart(e: React.MouseEvent, direction: ResizeDirection) {
+    ResizeState.isResizing = true;
+    
     e.preventDefault();
     e.stopPropagation();
 
@@ -115,7 +119,7 @@ export default function DraggableTextBlock({
     const stopResize = () => {
       window.removeEventListener("mousemove", resize);
       window.removeEventListener("mouseup", stopResize);
-
+      ResizeState.isResizing = false;
 
       if (!isOverlay && resizeBlock) {
         
@@ -160,6 +164,12 @@ export default function DraggableTextBlock({
             onDoubleClick?.();
         }
       }}
+      onClick={(e) => {
+        if (!isFocused && !isResizable) {
+            e.stopPropagation();
+            onClick?.();
+        }
+      }}
       className={`p-2 border rounded shadow ${
         isFocused ? 'ring-2 ring-red-500' : 'bg-gray-100'
       } `}
@@ -176,7 +186,7 @@ export default function DraggableTextBlock({
         }}
         readOnly={!isFocused || isOverlay}
       />
-      {isFocused && <ResizableHandles onResizeStart={handleResizeStart} />}
+      {isResizable && <ResizableHandles onResizeStart={handleResizeStart} />}
     </div>
   );
 }

@@ -10,17 +10,18 @@ import {
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Block, TextBlock } from "@/types/block";
-// import DraggableTextBlock from "./DraggableTextBlock";
 import { BlockRenderProps } from "@/types/blockRenderProps";
 import { blockRendererMap } from "@/blockRegistry";
 import { JSX } from "react";
+import { ResizeState } from "@/resizeManager";
 
 export default function Canvas() {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
+  const [resizingBlockId, setResizingBlockId] = useState<string | null>(null);
 
-  const activeBlock = blocks.find((b) => b.id === activeId) || null;
+  const draggingBlock = blocks.find((b) => b.id === draggingBlockId) || null;
 
   function getRenderer<T extends Block>(block: T) {
     return blockRendererMap[block.type] as
@@ -32,7 +33,7 @@ export default function Canvas() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100,
+        delay: 0,
         tolerance: 10,
       },
     })
@@ -57,8 +58,13 @@ export default function Canvas() {
   }
 
   function handleDragStart(event: DragStartEvent) {
+
+    if (ResizeState.isResizing) {
+      return;
+    }
+
     const id = event.active.id as string;
-    setActiveId(event.active.id as string);
+    setDraggingBlockId(event.active.id as string);
 
 
     setBlocks((prev) => {
@@ -85,6 +91,11 @@ export default function Canvas() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
+
+    if (ResizeState.isResizing) {
+      return;
+    }
+
     const { active, delta } = event;
     setBlocks((prev) =>
       prev.map((b) =>
@@ -93,14 +104,20 @@ export default function Canvas() {
           : b
       )
     );
-    setActiveId(null);
+    setResizingBlockId(draggingBlockId);
+    setDraggingBlockId(null);
   }
 
   return (
     <div 
       onMouseDown={() => {
-        setFocusedBlockId(null)}
-      }
+        if (resizingBlockId) {
+          setResizingBlockId(null);
+        }
+        if (focusedBlockId) {
+          setFocusedBlockId(null);
+        }
+      }}
       style={{ backgroundColor: "white" }}
       className="relative w-full h-[calc(100vh-64px)] overflow-hidden">
       <button
@@ -123,29 +140,35 @@ export default function Canvas() {
             <Renderer
               key={block.id}
               block={block}
-              isHidden={block.id === activeId}
+              isHidden={block.id === draggingBlockId}
               isFocused={focusedBlockId === block.id}
-              onDoubleClick={() => setFocusedBlockId(block.id)}
+              isResizable={resizingBlockId === block.id}
+              onDoubleClick={() => {
+                setResizingBlockId(null);
+                setFocusedBlockId(block.id)
+              }}
+              onClick={() => setResizingBlockId(block.id)}
               updateBlockContent={updateBlockContent}
               resizeBlock={resizeBlock}
             />
           ) : null;
         })}
 
-        {activeId && (
+        {draggingBlockId && (
         <DragOverlay>
           {
             (
               () => {
-                if (!activeBlock) return null;
+                if (!draggingBlock) return null;
 
-                const Renderer = getRenderer(activeBlock);
+                const Renderer = getRenderer(draggingBlock);
 
                 return Renderer ? (
                   <Renderer
-                    block={activeBlock}
+                    block={draggingBlock}
                     isOverlay
-                    overlayPosition={{ x: activeBlock.x, y: activeBlock.y }}
+                    isResizable
+                    overlayPosition={{ x: draggingBlock.x, y: draggingBlock.y }}
                     updateBlockContent={updateBlockContent}
                   />
                 ) : null;
