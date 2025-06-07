@@ -15,7 +15,6 @@ export default function DraggableTextBlock({
   isResizable = false,
   overlayPosition,
   onDoubleClick,
-  onClick,
   updateBlockContent,
   resizeBlock
 }: BlockRenderProps<TextBlock> ) 
@@ -162,12 +161,6 @@ export default function DraggableTextBlock({
         if (!isFocused) {
             e.stopPropagation();
             onDoubleClick?.();
-        }
-      }}
-      onClick={(e) => {
-        if (!isFocused && !isResizable) {
-            e.stopPropagation();
-            onClick?.();
         }
       }}
       className={`p-2 border rounded shadow ${

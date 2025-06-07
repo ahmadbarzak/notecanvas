@@ -147,7 +147,6 @@ export default function Canvas() {
                 setResizingBlockId(null);
                 setFocusedBlockId(block.id)
               }}
-              onClick={() => setResizingBlockId(block.id)}
               updateBlockContent={updateBlockContent}
               resizeBlock={resizeBlock}
             />
