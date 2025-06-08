@@ -5,6 +5,7 @@ export interface BlockRenderProps<T extends Block = Block> {
   isOverlay?: boolean;
   isHidden?: boolean;
   isFocused?: boolean;
+  isResizable?: boolean;
   overlayPosition?: { x: number; y: number };
   onDoubleClick?: () => void;
   updateBlockContent: (id: string, content: string) => void;

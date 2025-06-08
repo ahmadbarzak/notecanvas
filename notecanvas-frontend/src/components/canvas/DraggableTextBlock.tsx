@@ -4,7 +4,7 @@ import {TextBlock } from "@/types/block";
 import { useEffect, useState, useRef } from "react";
 import { BlockRenderProps } from "@/types/blockRenderProps";
 import ResizableHandles, { ResizeDirection } from "./ResizableHandles";
-
+import { ResizeState } from "@/resizeManager";
 
 
 export default function DraggableTextBlock({
@@ -12,6 +12,7 @@ export default function DraggableTextBlock({
   isOverlay = false,
   isHidden = false,
   isFocused = false,
+  isResizable = false,
   overlayPosition,
   onDoubleClick,
   updateBlockContent,
@@ -27,6 +28,15 @@ export default function DraggableTextBlock({
     width: block.width ?? 100,
     height: block.height ?? 100,
   });
+
+  useEffect(() => {
+    if (!isOverlay) {
+        setDimensions({
+        width: block.width ?? 100,
+        height: block.height ?? 100,
+        });
+    }
+  }, [block.width, block.height, isOverlay]);
 
   const livePositionRef = useRef({ x: block.x, y: block.y });
   const [livePosition, setLivePosition] = useState({ x: block.x, y: block.y });
@@ -50,6 +60,8 @@ export default function DraggableTextBlock({
   }, [block.x, block.y]);
 
   function handleResizeStart(e: React.MouseEvent, direction: ResizeDirection) {
+    ResizeState.isResizing = true;
+    
     e.preventDefault();
     e.stopPropagation();
 
@@ -115,7 +127,7 @@ export default function DraggableTextBlock({
     const stopResize = () => {
       window.removeEventListener("mousemove", resize);
       window.removeEventListener("mouseup", stopResize);
-
+      ResizeState.isResizing = false;
 
       if (!isOverlay && resizeBlock) {
         
@@ -176,7 +188,7 @@ export default function DraggableTextBlock({
         }}
         readOnly={!isFocused || isOverlay}
       />
-      {isFocused && <ResizableHandles onResizeStart={handleResizeStart} />}
+      {isResizable && <ResizableHandles onResizeStart={handleResizeStart} />}
     </div>
   );
 }
