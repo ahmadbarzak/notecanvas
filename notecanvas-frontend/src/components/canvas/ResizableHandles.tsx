@@ -32,7 +32,14 @@ export default function ResizableHandles({ onResizeStart }: ResizableHandlesProp
       {directions.map((dir) => (
         <div
           key={dir}
-          onMouseDown={(e) => onResizeStart(e, dir)}
+          onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onResizeStart(e, dir);
+              
+          }}
+          draggable={false}
+          style={{ touchAction: "none" }} 
           className={`absolute ${positionMap[dir]} w-2 h-2 bg-blue-500 rounded-sm z-20`}
         />
       ))}
