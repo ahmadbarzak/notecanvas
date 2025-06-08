@@ -29,6 +29,15 @@ export default function DraggableTextBlock({
     height: block.height ?? 100,
   });
 
+  useEffect(() => {
+    if (!isOverlay) {
+        setDimensions({
+        width: block.width ?? 100,
+        height: block.height ?? 100,
+        });
+    }
+  }, [block.width, block.height, isOverlay]);
+
   const livePositionRef = useRef({ x: block.x, y: block.y });
   const [livePosition, setLivePosition] = useState({ x: block.x, y: block.y });
 

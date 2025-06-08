@@ -33,7 +33,6 @@ export default function ResizableHandles({ onResizeStart }: ResizableHandlesProp
         <div
           key={dir}
           onMouseDown={(e) => {
-              console.log(`Resize started in direction: ${dir}`);
               e.preventDefault();
               e.stopPropagation();
               onResizeStart(e, dir);
