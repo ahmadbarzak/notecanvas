@@ -7,7 +7,7 @@ import {
   useSensor,
   PointerSensor
 } from "@dnd-kit/core";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Block, TextBlock } from "@/types/block";
 import { BlockRenderProps } from "@/types/blockRenderProps";
@@ -29,11 +29,42 @@ export default function Canvas() {
       | undefined;
   }
 
+  const isMouseDownRef = useRef(false);
+
+
+  useEffect(() => {
+    const handleDown = () => { isMouseDownRef.current = true; };
+    const handleUp = () => { isMouseDownRef.current = false; };
+
+    window.addEventListener("mousedown", handleDown);
+    window.addEventListener("mouseup", handleUp);
+    return () => {
+      window.removeEventListener("mousedown", handleDown);
+      window.removeEventListener("mouseup", handleUp);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!resizingBlockId) return;
+    console.log("howdy");
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log("keydown", e.key);
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (!isMouseDownRef.current && resizingBlockId) {
+          setBlocks((prev) => prev.filter((b) => b.id !== resizingBlockId));
+          setResizingBlockId(null);
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [resizingBlockId]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 0,
+        delay: 50,
         tolerance: 10,
       },
     })
@@ -48,6 +79,7 @@ export default function Canvas() {
       )
     );
   }
+
 
   function resizeBlock(id: string, updates: { x: number; y: number; width: number; height: number }) {
     setBlocks((prev) =>
