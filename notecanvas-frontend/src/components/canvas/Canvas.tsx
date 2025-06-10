@@ -88,8 +88,13 @@ export default function Canvas() {
             ...prev.slice(lastAction.index),
           ]);
         }
-
-        if (lastAction.type === "resize" || lastAction.type === "move") {
+        else if (lastAction.type === "add") {
+          setBlocks((prev) => [
+            ...prev.slice(0, lastAction.index),
+            ...prev.slice(lastAction.index + 1),
+          ]);
+        }
+        else if (lastAction.type === "resize" || lastAction.type === "move") {
           setBlocks(blocksRef.current.map(b =>
             b.id === lastAction.blockId ? lastAction.prev : b
           ));
@@ -125,7 +130,12 @@ export default function Canvas() {
   function resizeBlock(id: string, updates: { x: number; y: number; width: number; height: number }) {
 
     const prevBlock = blocks.find((b) => b.id === id);
-    if (prevBlock) {
+    const changeMade = updates.x !== prevBlock?.x ||
+      updates.y !== prevBlock?.y ||
+      updates.width !== prevBlock?.width ||
+      updates.height !== prevBlock?.height;
+
+    if (prevBlock && changeMade) {
       historyRef.current.push({
         type: "resize",
         blockId: id,
@@ -171,6 +181,14 @@ export default function Canvas() {
       width: 274,
       height: 141,
     };
+
+    historyRef.current.push({
+      type: "add",
+      block: newBlock,
+      index: blocksRef.current.length,
+    });
+    console.log("add - history:", historyRef.current);
+
     setBlocks((prev) => [...prev, newBlock]);
   }
 
@@ -183,7 +201,7 @@ export default function Canvas() {
     const { active, delta } = event;
 
     const prevBlock = blocks.find((b) => b.id === active.id);
-    if (prevBlock) {
+    if (prevBlock && (delta.x !== 0 || delta.y !== 0)) {
       historyRef.current.push({
         type: "move",
         blockId: prevBlock.id,
